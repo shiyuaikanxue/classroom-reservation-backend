@@ -1,0 +1,3989 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Classroom Reservation API",
+    "version": "1.0.0",
+    "description": "API for managing classroom reservations"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5000"
+    }
+  ],
+  "paths": {
+    "/activities": {
+      "get": {
+        "summary": "获取所有活动",
+        "description": "返回所有活动的列表",
+        "tags": [
+          "Activities"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功获取活动列表",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Activity"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "创建活动",
+        "description": "创建一个新的活动",
+        "tags": [
+          "Activities"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ActivityInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "活动创建成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Activity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "无效的请求数据",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/activities/{id}": {
+      "get": {
+        "summary": "根据 ID 获取活动",
+        "description": "返回指定 ID 的活动",
+        "tags": [
+          "Activities"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "活动 ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功获取活动",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Activity"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "活动未找到",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "更新活动",
+        "description": "更新指定 ID 的活动",
+        "tags": [
+          "Activities"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "活动 ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ActivityInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "活动更新成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Activity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "无效的请求数据",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "活动未找到",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "删除活动",
+        "description": "删除指定 ID 的活动",
+        "tags": [
+          "Activities"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "活动 ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "活动删除成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "活动删除成功"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "活动未找到",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/login": {
+      "post": {
+        "summary": "后台管理员登录",
+        "description": "后台管理员通过用户名和密码登录",
+        "tags": [
+          "Admin Login"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": {
+                    "type": "string",
+                    "description": "用户名"
+                  },
+                  "password": {
+                    "type": "string",
+                    "description": "密码"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "登录成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "token": {
+                      "type": "string",
+                      "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                    },
+                    "admin": {
+                      "$ref": "#/components/schemas/Admin"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "用户名或密码错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "密码错误"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "服务器错误"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/app/login": {
+      "post": {
+        "summary": "小程序用户登录",
+        "description": "小程序用户通过电话或邮箱登录",
+        "tags": [
+          "App Login"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "username",
+                  "password"
+                ],
+                "properties": {
+                  "username": {
+                    "type": "string",
+                    "description": "电话或邮箱",
+                    "example": "user1@example.com"
+                  },
+                  "password": {
+                    "type": "string",
+                    "description": "密码",
+                    "example": "password123"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "登录成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "token": {
+                      "type": "string",
+                      "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                    },
+                    "user": {
+                      "$ref": "#/components/schemas/AppUser"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "用户名或密码错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "密码错误"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "服务器错误"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/classrooms": {
+      "get": {
+        "summary": "获取所有教室",
+        "description": "返回所有教室的列表",
+        "tags": [
+          "Classrooms"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功获取教室列表",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Classroom"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "创建教室",
+        "description": "创建一个新的教室",
+        "tags": [
+          "Classrooms"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClassroomInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "教室创建成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Classroom"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "无效的请求数据",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/classrooms/{id}": {
+      "get": {
+        "summary": "根据 ID 获取教室",
+        "description": "返回指定 ID 的教室",
+        "tags": [
+          "Classrooms"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "教室 ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功获取教室",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Classroom"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "教室未找到",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "更新教室",
+        "description": "更新指定 ID 的教室",
+        "tags": [
+          "Classrooms"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "教室 ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClassroomInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "教室更新成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Classroom"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "无效的请求数据",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "教室未找到",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "删除教室",
+        "description": "删除指定 ID 的教室",
+        "tags": [
+          "Classrooms"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "教室 ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "教室删除成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "教室删除成功"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "教室未找到",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/classes": {
+      "get": {
+        "summary": "获取所有班级",
+        "description": "返回所有班级的列表",
+        "tags": [
+          "Classes"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功获取班级列表",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Class"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "创建班级",
+        "description": "创建一个新的班级",
+        "tags": [
+          "Classes"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClassInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "班级创建成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Class"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "无效的输入"
+          }
+        }
+      }
+    },
+    "/classes/{id}": {
+      "get": {
+        "summary": "根据 ID 获取班级",
+        "description": "返回指定 ID 的班级",
+        "tags": [
+          "Classes"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "班级 ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功获取班级",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Class"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "班级未找到"
+          }
+        }
+      },
+      "put": {
+        "summary": "更新班级",
+        "description": "更新指定 ID 的班级",
+        "tags": [
+          "Classes"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "班级 ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClassInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "班级更新成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Class"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "无效的输入"
+          },
+          "404": {
+            "description": "班级未找到"
+          }
+        }
+      },
+      "delete": {
+        "summary": "删除班级",
+        "description": "删除指定 ID 的班级",
+        "tags": [
+          "Classes"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "班级 ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "班级删除成功"
+          },
+          "404": {
+            "description": "班级未找到"
+          }
+        }
+      }
+    },
+    "/college": {
+      "get": {
+        "summary": "获取所有学院",
+        "description": "返回所有学院的列表",
+        "tags": [
+          "Colleges"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功获取学院列表",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/College"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "创建学院",
+        "description": "创建一个新的学院",
+        "tags": [
+          "Colleges"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CollegeInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "学院创建成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/searmas/College"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "无效的输入"
+          }
+        }
+      }
+    },
+    "/college/{id}": {
+      "get": {
+        "summary": "根据 ID 获取学院",
+        "description": "返回指定 ID 的学院",
+        "tags": [
+          "Colleges"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "学院 ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功获取学院",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/College"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "学院未找到"
+          }
+        }
+      },
+      "put": {
+        "summary": "更新学院",
+        "description": "更新指定 ID 的学院",
+        "tags": [
+          "Colleges"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "学院 ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CollegeInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "学院更新成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/College"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "无效的输入"
+          },
+          "404": {
+            "description": "学院未找到"
+          }
+        }
+      },
+      "delete": {
+        "summary": "删除学院",
+        "description": "删除指定 ID 的学院",
+        "tags": [
+          "Colleges"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "学院 ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "学院删除成功"
+          },
+          "404": {
+            "description": "学院未找到"
+          }
+        }
+      }
+    },
+    "/courses": {
+      "get": {
+        "summary": "获取所有课程",
+        "description": "返回所有课程的列表",
+        "tags": [
+          "Courses"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功获取课程列表",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Course"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "创建课程",
+        "description": "创建一个新的课程",
+        "tags": [
+          "Courses"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CourseInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "课程创建成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Course"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "无效的请求数据",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/searmas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/courses/{id}": {
+      "get": {
+        "summary": "根据 ID 获取课程",
+        "description": "返回指定 ID 的课程",
+        "tags": [
+          "Courses"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "课程 ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功获取课程",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Course"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "课程未找到",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "更新课程",
+        "description": "更新指定 ID 的课程",
+        "tags": [
+          "Courses"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "课程 ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CourseInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "课程更新成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Course"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "无效的请求数据",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "课程未找到",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "删除课程",
+        "description": "删除指定 ID 的课程",
+        "tags": [
+          "Courses"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "课程 ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "课程删除成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "课程删除成功"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "课程未找到",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/favorites": {
+      "get": {
+        "summary": "获取所有收藏",
+        "description": "返回所有收藏的列表",
+        "tags": [
+          "Favorites"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功获取收藏列表",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Favorite"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "添加收藏",
+        "description": "用户添加收藏",
+        "tags": [
+          "Favorites"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FavoriteInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "收藏添加成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Favorite"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未授权，请先登录"
+          },
+          "500": {
+            "description": "服务器错误"
+          }
+        }
+      }
+    },
+    "/favorites/{id}": {
+      "get": {
+        "summary": "根据 ID 获取收藏",
+        "description": "返回指定 ID 的收藏",
+        "tags": [
+          "Favorites"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "收藏 ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功获取收藏",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Favorite"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "收藏未找到",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "更新收藏",
+        "description": "更新指定 ID 的收藏",
+        "tags": [
+          "Favorites"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "收藏 ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FavoriteInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "收藏更新成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Favorite"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "无效的请求数据",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "收藏未找到",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "删除收藏",
+        "description": "删除指定 ID 的收藏",
+        "tags": [
+          "Favorites"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "收藏 ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "收藏删除成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "收藏删除成功"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "收藏未找到",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/majors": {
+      "get": {
+        "summary": "获取所有专业",
+        "description": "返回所有专业的列表",
+        "tags": [
+          "Majors"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功获取专业列表",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Major"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "创建专业",
+        "description": "创建一个新的专业",
+        "tags": [
+          "Majors"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MajorInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "专业创建成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Major"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "无效的请求数据",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/majors/{id}": {
+      "get": {
+        "summary": "根据 ID 获取专业",
+        "description": "返回指定 ID 的专业",
+        "tags": [
+          "Majors"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "专业 ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功获取专业",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Major"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "专业未找到",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "更新专业",
+        "description": "更新指定 ID 的专业",
+        "tags": [
+          "Majors"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "专业 ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MajorInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "专业更新成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Major"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "无效的请求数据",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "专业未找到",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "删除专业",
+        "description": "删除指定 ID 的专业",
+        "tags": [
+          "Majors"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "专业 ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "专业删除成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "专业删除成功"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "专业未找到",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/notifications": {
+      "get": {
+        "summary": "获取所有通知",
+        "description": "返回所有通知的列表",
+        "tags": [
+          "Notifications"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功获取通知列表",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Notification"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "创建通知",
+        "description": "创建一个新的通知",
+        "tags": [
+          "Notifications"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NotificationInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "通知创建成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Notification"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "无效的请求数据",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/notifications/{id}": {
+      "get": {
+        "summary": "根据 ID 获取通知",
+        "description": "返回指定 ID 的通知",
+        "tags": [
+          "Notifications"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "通知 ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功获取通知",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Notification"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "通知未找到",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "更新通知",
+        "description": "更新指定 ID 的通知",
+        "tags": [
+          "Notifications"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "通知 ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NotificationInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "通知更新成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/secarmas/Notification"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "无效的请求数据",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "通知未找到",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "删除通知",
+        "description": "删除指定 ID 的通知",
+        "tags": [
+          "Notifications"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "通知 ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "通知删除成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "通知删除成功"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "通知未找到",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/reservations": {
+      "get": {
+        "summary": "获取所有预约",
+        "description": "返回所有预约的列表",
+        "tags": [
+          "Reservations"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功获取预约列表",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Reservation"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "创建预约",
+        "description": "用户创建预约",
+        "tags": [
+          "Reservations"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReservationInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "预约创建成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Reservation"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未授权，请先登录"
+          },
+          "500": {
+            "description": "服务器错误"
+          }
+        }
+      }
+    },
+    "/reservations/{id}": {
+      "get": {
+        "summary": "根据 ID 获取预约",
+        "description": "返回指定 ID 的预约",
+        "tags": [
+          "Reservations"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "预约 ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功获取预约",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Reservation"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "预约未找到",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "更新预约",
+        "description": "更新指定 ID 的预约",
+        "tags": [
+          "Reservations"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "预约 ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReservationInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "预约更新成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Reservation"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "无效的请求数据",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "预约未找到",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "删除预约",
+        "description": "删除指定 ID 的预约",
+        "tags": [
+          "Reservations"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "预约 ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "预约删除成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "预约删除成功"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "预约未找到",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/reviews": {
+      "get": {
+        "summary": "获取所有评价",
+        "description": "返回所有评价的列表",
+        "tags": [
+          "Reviews"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功获取评价列表",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Review"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "创建评价",
+        "description": "创建一个新的评价",
+        "tags": [
+          "Reviews"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "评价创建成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Review"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "无效的请求数据",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/reviews/{id}": {
+      "get": {
+        "summary": "根据 ID 获取评价",
+        "description": "返回指定 ID 的评价",
+        "tags": [
+          "Reviews"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "评价 ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功获取评价",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Review"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "评价未找到",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "更新评价",
+        "description": "更新指定 ID 的评价",
+        "tags": [
+          "Reviews"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "评价 ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/secarmas/ReviewInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "评价更新成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Review"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "无效的请求数据",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "评价未找到",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "删除评价",
+        "description": "删除指定 ID 的评价",
+        "tags": [
+          "Reviews"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "评价 ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "评价删除成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "评价删除成功"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "评价未找到",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/schedules": {
+      "get": {
+        "summary": "获取所有课表",
+        "description": "返回所有课表的列表",
+        "tags": [
+          "Schedules"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功获取课表列表",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Schedule"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "创建课表",
+        "description": "创建一个新的课表",
+        "tags": [
+          "Schedules"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScheduleInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "课表创建成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Schedule"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "无效的请求数据",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/schedules/{id}": {
+      "get": {
+        "summary": "根据 ID 获取课表",
+        "description": "返回指定 ID 的课表",
+        "tags": [
+          "Schedules"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "课表 ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功获取课表",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Schedule"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "课表未找到",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "更新课表",
+        "description": "更新指定 ID 的课表",
+        "tags": [
+          "Schedules"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "课表 ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScheduleInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "课表更新成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Schedule"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "无效的请求数据",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "课表未找到",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/secarmas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "删除课表",
+        "description": "删除指定 ID 的课表",
+        "tags": [
+          "Schedules"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "课表 ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "课表删除成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "课表删除成功"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "课表未找到",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/schools": {
+      "get": {
+        "summary": "获取所有学校",
+        "description": "返回所有学校的列表",
+        "tags": [
+          "Schools"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功获取学校列表",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/School"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "创建学校",
+        "description": "创建一个新的学校",
+        "tags": [
+          "Schools"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SchoolInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "学校创建成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/School"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "无效的请求数据",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/schools/{id}": {
+      "get": {
+        "summary": "根据 ID 获取学校",
+        "description": "返回指定 ID 的学校",
+        "tags": [
+          "Schools"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "学校 ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功获取学校",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/School"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "学校未找到",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/secarmas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "更新学校",
+        "description": "更新指定 ID 的学校",
+        "tags": [
+          "Schools"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "学校 ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SchoolInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "学校更新成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/School"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "无效的请求数据",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "学校未找到",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "删除学校",
+        "description": "删除指定 ID 的学校",
+        "tags": [
+          "Schools"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "学校 ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "学校删除成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "学校删除成功"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "学校未找到",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/students": {
+      "get": {
+        "summary": "获取所有学生",
+        "description": "返回所有学生的列表",
+        "tags": [
+          "Students"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功获取学生列表",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Student"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "创建学生",
+        "description": "创建一个新的学生",
+        "tags": [
+          "Students"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudentInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "学生创建成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Student"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "无效的请求数据",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/students/{id}": {
+      "get": {
+        "summary": "根据 ID 获取学生",
+        "description": "返回指定 ID 的学生",
+        "tags": [
+          "Students"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "学生 ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功获取学生",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Student"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "学生未找到",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "更新学生",
+        "description": "更新指定 ID 的学生",
+        "tags": [
+          "Students"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "学生 ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudentInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "学生更新成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Student"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "无效的请求数据",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "学生未找到",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "删除学生",
+        "description": "删除指定 ID 的学生",
+        "tags": [
+          "Students"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "学生 ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "学生删除成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "学生删除成功"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "学生未找到",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/teachers": {
+      "get": {
+        "summary": "获取所有教师",
+        "description": "返回所有教师的列表",
+        "tags": [
+          "Teachers"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功获取教师列表",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$极光 ref": "#/components/schemas/Teacher"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "创建教师",
+        "description": "创建一个新的教师",
+        "tags": [
+          "Teachers"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TeacherInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "400": {
+            "description": "无效的请求数据",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#极光 /components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "极光 201": {
+            "description": "教师创建成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Teacher"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/teachers/{id}": {
+      "get": {
+        "summary": "根据 ID 获取教师",
+        "description": "返回指定 ID 的教师",
+        "tags": [
+          "Teachers"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "教师 ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功获取教师",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Teacher"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "教师未找到",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "更新教师",
+        "description": "更新指定 ID 的教师",
+        "tags": [
+          "Teachers"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "教师 ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TeacherInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "教师更新成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Teacher"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "无效的请求数据",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "教师未找到",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "删除教师",
+        "description": "删除指定 ID 的教师",
+        "tags": [
+          "Teachers"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "教师 ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "教师删除成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "教师删除成功"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "教师未找到",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/usage-records": {
+      "get": {
+        "summary": "获取所有使用记录",
+        "description": "返回所有使用记录的列表",
+        "tags": [
+          "UsageRecords"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功获取使用记录列表",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UsageRecord"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "创建使用记录",
+        "description": "创建一个新的使用记录",
+        "tags": [
+          "UsageRecords"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UsageRecordInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "使用记录创建成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsageRecord"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "无效的请求数据",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/usage-records/{id}": {
+      "get": {
+        "summary": "根据 ID 获取使用记录",
+        "description": "返回指定 ID 的使用记录",
+        "tags": [
+          "UsageRecords"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "使用记录 ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功获取使用记录",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsageRecord"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "使用记录未找到",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "更新使用记录",
+        "description": "更新指定 ID 的使用记录",
+        "tags": [
+          "UsageRecords"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "使用记录 ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UsageRecordInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "使用记录更新成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsageRecord"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "无效的请求数据",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "使用记录未找到",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "删除使用记录",
+        "description": "删除指定 ID 的使用记录",
+        "tags": [
+          "UsageRecords"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "使用记录 ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "使用记录删除成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "使用记录删除成功"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "使用记录未找到",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AppUser": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 1
+          },
+          "username": {
+            "type": "string",
+            "example": "user1"
+          },
+          "email": {
+            "type": "string",
+            "example": "user1@example.com"
+          },
+          "phone": {
+            "type": "string",
+            "example": "1234567890"
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Activities",
+      "description": "活动管理"
+    },
+    {
+      "name": "Admin Login",
+      "description": "后台管理登录"
+    },
+    {
+      "name": "App Login",
+      "description": "小程序登录"
+    },
+    {
+      "name": "Classrooms",
+      "description": "教室管理"
+    },
+    {
+      "name": "Classes",
+      "description": "班级管理"
+    },
+    {
+      "name": "Colleges",
+      "description": "学院管理"
+    },
+    {
+      "name": "Courses",
+      "description": "课程管理"
+    },
+    {
+      "name": "Favorites",
+      "description": "收藏管理"
+    },
+    {
+      "name": "Majors",
+      "description": "专业管理"
+    },
+    {
+      "name": "Notifications",
+      "description": "通知管理"
+    },
+    {
+      "name": "Reservations",
+      "description": "预约管理"
+    },
+    {
+      "name": "Reviews",
+      "description": "评价管理"
+    },
+    {
+      "name": "Schedules",
+      "description": "课表管理"
+    },
+    {
+      "name": "Schools",
+      "description": "学校管理"
+    },
+    {
+      "name": "Students",
+      "description": "学生管理"
+    },
+    {
+      "name": "Teachers",
+      "description": "教师管理"
+    },
+    {
+      "name": "UsageRecords",
+      "description": "使用记录管理"
+    }
+  ]
+}
