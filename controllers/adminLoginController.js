@@ -13,21 +13,31 @@ exports.login = async (req, res, next) => {
     }
 
     // 验证密码
+    const handle = await bcrypt.hash(password, 10); // 加密密码
+    console.log(admin, username, password, handle);
     const isMatch = await bcrypt.compare(password, admin.password);
     if (!isMatch) {
       return res.status(400).json({ message: "密码错误" });
     }
 
-    // 生成 token
+    // 生成 token，包含 role 信息
     const token = jwt.sign(
-      { id: admin.admin_id, role: "admin" },
+      { id: admin.admin_id, role: admin.role }, // 加入 role
       "your_secret_key",
-      {
-        expiresIn: "1h",
-      }
+      { expiresIn: "1h" }
     );
 
-    res.status(200).json({ success: true, token, admin });
+    // 返回管理员信息和 token
+    res.status(200).json({
+      success: true,
+      token,
+      admin: {
+        admin_id: admin.admin_id,
+        username: admin.username,
+        role: admin.role,
+        school_id: admin.school_id, // 返回 school_id
+      },
+    });
   } catch (err) {
     next(err);
   }
