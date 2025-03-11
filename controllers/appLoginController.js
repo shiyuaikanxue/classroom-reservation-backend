@@ -11,11 +11,8 @@ exports.login = async (req, res, next) => {
     if (!user) {
       return res.status(400).json({ message: "用户不存在" });
     }
-    console.log(user);
     // 验证密码
-    const hashedPassword = await bcrypt.hash(password, 10); // 加密密码
     const isMatch = await bcrypt.compare(password, user.password);
-    console.log(hashedPassword);
     if (!isMatch) {
       return res.status(400).json({ message: "密码错误" });
     }

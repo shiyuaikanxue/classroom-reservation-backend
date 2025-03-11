@@ -13,8 +13,6 @@ exports.login = async (req, res, next) => {
     }
 
     // 验证密码
-    const handle = await bcrypt.hash(password, 10); // 加密密码
-    console.log(admin, username, password, handle);
     const isMatch = await bcrypt.compare(password, admin.password);
     if (!isMatch) {
       return res.status(400).json({ message: "密码错误" });
