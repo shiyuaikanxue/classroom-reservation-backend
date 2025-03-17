@@ -11,18 +11,18 @@ class School {
     return rows[0];
   }
 
-  static async create(name, address, contact) {
+  static async create(name, type, country, city, address, contact, email, website) {
     const [result] = await db.query(
-      'INSERT INTO school (name, address, contact) VALUES (?, ?, ?)',
-      [name, address, contact]
+      'INSERT INTO school (name, type, country, city, address, contact, email, website, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())',
+      [name, type, country, city, address, contact, email, website]
     );
-    return result.insertId;
+    return result.insertId; // 返回自动生成的 school_id
   }
 
-  static async update(school_id, name, address, contact) {
+  static async update(school_id, name, type, country, city, address, contact, email, website) {
     await db.query(
-      'UPDATE school SET name = ?, address = ?, contact = ? WHERE school_id = ?',
-      [name, address, contact, school_id]
+      'UPDATE school SET name = ?, type = ?, country = ?, city = ?, address = ?, contact = ?, email = ?, website = ? WHERE school_id = ?',
+      [name, type, country, city, address, contact, email, website, school_id]
     );
   }
 

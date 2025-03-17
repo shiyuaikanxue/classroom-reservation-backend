@@ -13,18 +13,48 @@ const schoolController = require("../controllers/schoolController");
  * @swagger
  * /schools:
  *   get:
- *     summary: 获取所有学校
- *     description: 返回所有学校的列表
+ *     summary: 获取学校列表
+ *     description: 返回学校列表，支持分页和按名称搜索
  *     tags: [Schools]
+ *     parameters:
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *         description: 每页返回的学校数量
+ *       - in: query
+ *         name: skip
+ *         schema:
+ *           type: integer
+ *           minimum: 0
+ *         description: 跳过的学校数量（用于分页）
+ *       - in: query
+ *         name: name
+ *         schema:
+ *           type: string
+ *         description: 学校名称（用于搜索）
  *     responses:
  *       200:
  *         description: 成功获取学校列表
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/School'
+ *               type: object
+ *               properties:
+ *                 total:
+ *                   type: integer
+ *                   description: 总学校数量
+ *                 schools:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/School'
+ *       400:
+ *         description: 无效的请求参数
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  *       500:
  *         description: 服务器错误
  *         content:
@@ -32,7 +62,7 @@ const schoolController = require("../controllers/schoolController");
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get("/", schoolController.getAllSchools);
+router.get("/", schoolController.getSchools);
 
 /**
  * @swagger

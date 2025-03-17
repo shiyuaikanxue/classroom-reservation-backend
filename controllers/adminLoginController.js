@@ -31,6 +31,9 @@ exports.login = async (req, res, next) => {
         username: admin.username,
         role: admin.role,
         school_id: admin.school_id,
+        phone_number: admin.phone_number,
+        hashed_password: admin.hashed_password,
+        avatar: admin.avatar,
       },
     });
   } catch (err) {
