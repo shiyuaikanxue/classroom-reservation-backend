@@ -1,8 +1,12 @@
 const College = require('../models/collegeModel');
 
-exports.getAllColleges = async (req, res, next) => {
+exports.getAllCollegesBySchoolId = async (req, res, next) => {
   try {
-    const colleges = await College.getAll();
+    const schoolId = req.query.school_id; // 从查询参数中获取学校ID
+    if (!schoolId) {
+      return res.status(400).json({ message: "school_id is required" });
+    }
+    const colleges = await College.getAllBySchoolId(schoolId); // 根据学校ID获取所有学院
     res.status(200).json(colleges);
   } catch (err) {
     next(err);

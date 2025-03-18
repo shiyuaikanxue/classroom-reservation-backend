@@ -27,7 +27,7 @@ const router = express.Router();
  *               items:
  *                 $ref: '#/components/schemas/College'
  */
-router.get("/", collegeController.getAllColleges);
+router.get("/", collegeController.getAllCollegesBySchoolId);
 
 /**
  * @swagger

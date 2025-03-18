@@ -11,6 +11,11 @@ class College {
     return rows[0];
   }
 
+  static async getAllBySchoolId(school_id) {
+    const [rows] = await db.query('SELECT * FROM college WHERE school_id = ?', [school_id]);
+    return rows;
+  }
+
   static async create(school_id, name) {
     const [result] = await db.query(
       'INSERT INTO college (school_id, name) VALUES (?, ?)',

@@ -15,6 +15,7 @@ const teachersRoute = require("./teacherRoutes");
 const usageRecordRoute = require("./usageRecordRoutes");
 const appLoginRoutes = require("./appLoginRoutes");
 const adminLoginRoutes = require("./adminLoginRoutes");
+const adminRoute = require("./adminRoutes");
 function registerRoutes(app) {
   app.use("/school", schoolRoute);
   app.use("/student", studentRoute);
@@ -33,6 +34,7 @@ function registerRoutes(app) {
   app.use("/usageRecord", usageRecordRoute);
   app.use("/appLogin", appLoginRoutes);
   app.use("/adminLogin", adminLoginRoutes);
+  app.use("/admin", adminRoute);
   // Add more routes as needed.
   console.log("Routes registered successfully.");
 }
