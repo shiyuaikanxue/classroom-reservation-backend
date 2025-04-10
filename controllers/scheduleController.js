@@ -3,58 +3,98 @@ const { ClassDivided } = require("../constants/reservations");
 
 exports.getAllSchedules = async (req, res, next) => {
   try {
-    const {
-      page = 1,
-      limit = 10,
-      student_id,
-      teacher_id,
-      classroom_id,
-      course_name,
-      status,
-      date_from,
-      date_to,
-      time_slot
-    } = req.query;
+    const { student_id, week } = req.query;
 
-    // 验证时间节点
-    if (time_slot && !Object.values(ClassDivided).includes(time_slot)) {
+    if (!student_id || !week) {
       return res.status(400).json({
-        message: 'Invalid time slot',
-        validTimeSlots: Object.values(ClassDivided)
+        code: 400,
+        success: false,
+        message: "student_id and week are required",
+        data: null
       });
     }
 
-    // 构建筛选条件
-    const filter = {
-      student_id,
-      teacher_id,
-      classroom_id,
-      course_name,
-      status,
-      date_from,
-      date_to,
-      time_slot
+    // 配置学期开始日期（应放在模块顶部常量区）
+    const SEMESTER_START_DATE = new Date('2024-09-02');
+
+    // 基于学期开始日期的周数计算
+    const getWeekDateRange = (week) => {
+      const startDate = new Date(SEMESTER_START_DATE);
+      startDate.setDate(startDate.getDate() + (week - 1) * 7);
+      
+      const endDate = new Date(startDate);
+      endDate.setDate(startDate.getDate() + 6);
+      
+      return { startDate, endDate };
     };
 
-    // 获取课表数据（带分页和筛选）
-    const { schedules, total } = await Schedule.getAllWithPagination(
-      Number(page),
-      Number(limit),
-      filter
+    const { startDate, endDate } = getWeekDateRange(parseInt(week));
+
+    // 格式化日期函数保持不变
+    const formatDate = (date) => {
+      const pad = num => num.toString().padStart(2, '0');
+      return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+    };
+
+    // 获取课程数据（保持不变）
+    const schedules = await Schedule.getByStudentAndDateRange(
+      student_id,
+      formatDate(startDate),
+      formatDate(endDate)
     );
 
-    res.status(200).json({
-      schedules,
-      pagination: {
-        total,
-        page: Number(page),
-        limit: Number(limit),
-        totalPages: Math.ceil(total / Number(limit))
-      },
-      filter
+    // 按天分组课程（保持不变）
+    const weeklySchedule = {
+      Monday: [],
+      Tuesday: [],
+      Wednesday: [],
+      Thursday: [],
+      Friday: [],
+      Saturday: [],
+      Sunday: []
+    };
+
+    schedules.forEach(schedule => {
+      const dayOfWeek = new Date(schedule.start_time).getDay();
+      switch (dayOfWeek) {
+        case 0: weeklySchedule.Sunday.push(schedule); break;
+        case 1: weeklySchedule.Monday.push(schedule); break;
+        case 2: weeklySchedule.Tuesday.push(schedule); break;
+        case 3: weeklySchedule.Wednesday.push(schedule); break;
+        case 4: weeklySchedule.Thursday.push(schedule); break;
+        case 5: weeklySchedule.Friday.push(schedule); break;
+        case 6: weeklySchedule.Saturday.push(schedule); break;
+      }
     });
+
+    // 按时间排序（保持不变）
+    Object.keys(weeklySchedule).forEach(day => {
+      weeklySchedule[day].sort((a, b) =>
+        new Date(a.start_time) - new Date(b.start_time)
+      );
+    });
+
+    res.status(200).json({
+      code: 200,
+      success: true,
+      message: "Weekly schedule retrieved successfully",
+      data: {
+        week: parseInt(week),
+        start_date: formatDate(startDate),
+        end_date: formatDate(endDate),
+        schedule: weeklySchedule
+      }
+    });
+
   } catch (err) {
-    next(err);
+    console.error('Error in getStudentWeeklySchedule:', err);
+    res.status(500).json({
+      code: 500,
+      success: false,
+      message: "Failed to retrieve weekly schedule",
+      data: null,
+      error: process.env.NODE_ENV === 'development' ? err.message : null
+    });
   }
 };
 
@@ -62,8 +102,8 @@ exports.getScheduleById = async (req, res, next) => {
   try {
     const schedule = await Schedule.getByIdWithDetails(req.params.id);
     if (!schedule) {
-      return res.status(404).json({ 
-        message: "Schedule not found" 
+      return res.status(404).json({
+        message: "Schedule not found"
       });
     }
     res.status(200).json(schedule);
@@ -87,8 +127,8 @@ exports.createSchedule = async (req, res, next) => {
 
     // 验证必需字段
     if (!student_id || !course_name || !classroom_id || !start_time || !end_time || !time_slot) {
-      return res.status(400).json({ 
-        message: "student_id, course_name, classroom_id, start_time, end_time and time_slot are required" 
+      return res.status(400).json({
+        message: "student_id, course_name, classroom_id, start_time, end_time and time_slot are required"
       });
     }
 
@@ -107,8 +147,8 @@ exports.createSchedule = async (req, res, next) => {
       end_time
     );
     if (isConflict) {
-      return res.status(409).json({ 
-        message: 'Time conflict with existing schedule' 
+      return res.status(409).json({
+        message: 'Time conflict with existing schedule'
       });
     }
 
@@ -124,9 +164,9 @@ exports.createSchedule = async (req, res, next) => {
       time_slot
     });
 
-    res.status(201).json({ 
+    res.status(201).json({
       schedule_id: scheduleId,
-      message: "Schedule created successfully" 
+      message: "Schedule created successfully"
     });
   } catch (err) {
     next(err);
@@ -150,8 +190,8 @@ exports.updateSchedule = async (req, res, next) => {
     // 检查课表是否存在
     const schedule = await Schedule.getById(id);
     if (!schedule) {
-      return res.status(404).json({ 
-        message: "Schedule not found" 
+      return res.status(404).json({
+        message: "Schedule not found"
       });
     }
 
@@ -176,8 +216,8 @@ exports.updateSchedule = async (req, res, next) => {
         id
       );
       if (isConflict) {
-        return res.status(409).json({ 
-          message: 'Time conflict with existing schedule' 
+        return res.status(409).json({
+          message: 'Time conflict with existing schedule'
         });
       }
     }
@@ -194,8 +234,8 @@ exports.updateSchedule = async (req, res, next) => {
       time_slot
     });
 
-    res.status(200).json({ 
-      message: "Schedule updated successfully" 
+    res.status(200).json({
+      message: "Schedule updated successfully"
     });
   } catch (err) {
     next(err);
@@ -209,16 +249,16 @@ exports.deleteSchedule = async (req, res, next) => {
     // 检查课表是否存在
     const schedule = await Schedule.getById(id);
     if (!schedule) {
-      return res.status(404).json({ 
-        message: "Schedule not found" 
+      return res.status(404).json({
+        message: "Schedule not found"
       });
     }
 
     // 删除课表
     await Schedule.delete(id);
 
-    res.status(200).json({ 
-      message: "Schedule deleted successfully" 
+    res.status(200).json({
+      message: "Schedule deleted successfully"
     });
   } catch (err) {
     next(err);
