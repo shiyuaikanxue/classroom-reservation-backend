@@ -4,48 +4,48 @@ module.exports = {
   // 获取所有教师（带分页和筛选）
   async getAllWithPagination(page, limit, filter) {
     const offset = (page - 1) * limit;
-    
+
     // 构建WHERE条件
     const whereConditions = [];
     const params = [];
-    
+
     if (filter.name) {
       whereConditions.push('t.name LIKE ?');
       params.push(`%${filter.name}%`);
     }
-    
+
     if (filter.gender) {
       whereConditions.push('t.gender = ?');
       params.push(filter.gender);
     }
-    
+
     if (filter.email) {
       whereConditions.push('t.email LIKE ?');
       params.push(`%${filter.email}%`);
     }
-    
+
     if (filter.college_id) {
       whereConditions.push('t.college_id = ?');
       params.push(filter.college_id);
     }
-    
+
     if (filter.search) {
       whereConditions.push('(t.name LIKE ? OR t.email LIKE ?)');
       params.push(`%${filter.search}%`);
       params.push(`%${filter.search}%`);
     }
-    
-    const whereClause = whereConditions.length > 0 
-      ? `WHERE ${whereConditions.join(' AND ')}` 
+
+    const whereClause = whereConditions.length > 0
+      ? `WHERE ${whereConditions.join(' AND ')}`
       : '';
-    
+
     // 查询总数
     const [totalResult] = await db.query(
       `SELECT COUNT(*) as total FROM teachers t ${whereClause}`,
       params
     );
     const total = totalResult[0].total;
-    
+
     // 基础查询
     let query = `
       SELECT 
@@ -58,23 +58,32 @@ module.exports = {
       ${whereClause}
       GROUP BY t.teacher_id
     `;
-    
+
     // 添加课程数量筛选
     if (filter.min_courses) {
       query += ' HAVING course_count >= ?';
       params.push(filter.min_courses);
     }
-    
+
     // 添加分页
     query += ' ORDER BY t.name ASC LIMIT ? OFFSET ?';
     params.push(limit, offset);
-    
+
     // 执行查询
     const [teachers] = await db.query(query, params);
-    
+
     return { teachers, total };
   },
+  // 在 module.exports 中添加
+  async getByIds(teacherIds) {
+    if (!teacherIds || teacherIds.length === 0) return [];
 
+    const [teachers] = await db.query(
+      "SELECT * FROM teachers WHERE teacher_id IN (?)",
+      [teacherIds]
+    );
+    return teachers;
+  },
   // 根据ID获取教师详情（带关联信息）
   async getByIdWithDetails(id) {
     const [teachers] = await db.query(
@@ -86,9 +95,9 @@ module.exports = {
        WHERE t.teacher_id = ?`,
       [id]
     );
-    
+
     if (teachers.length === 0) return null;
-    
+
     // 获取教师教授的课程
     const [courses] = await db.query(
       `SELECT 
@@ -99,7 +108,7 @@ module.exports = {
        WHERE teacher_id = ?`,
       [id]
     );
-    
+
     return {
       ...teachers[0],
       courses
@@ -127,7 +136,7 @@ module.exports = {
   // 基础CRUD方法
   async getById(id) {
     const [teachers] = await db.query(
-      'SELECT * FROM teachers WHERE teacher_id = ?', 
+      'SELECT * FROM teachers WHERE teacher_id = ?',
       [id]
     );
     return teachers[0];
@@ -135,7 +144,7 @@ module.exports = {
 
   async create(teacherData) {
     const [result] = await db.query(
-      'INSERT INTO teachers SET ?', 
+      'INSERT INTO teachers SET ?',
       [teacherData]
     );
     return result.insertId;
@@ -143,14 +152,14 @@ module.exports = {
 
   async update(id, updateData) {
     await db.query(
-      'UPDATE teachers SET ? WHERE teacher_id = ?', 
+      'UPDATE teachers SET ? WHERE teacher_id = ?',
       [updateData, id]
     );
   },
 
   async delete(id) {
     await db.query(
-      'DELETE FROM teachers WHERE teacher_id = ?', 
+      'DELETE FROM teachers WHERE teacher_id = ?',
       [id]
     );
   }

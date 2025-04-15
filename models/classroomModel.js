@@ -13,7 +13,15 @@ class Classroom {
     );
     return rows[0];
   }
-
+  static async getByIds(classroomIds) {
+    if (!classroomIds || classroomIds.length === 0) return [];
+    
+    const [rows] = await db.query(
+      "SELECT * FROM classroom WHERE classroom_id IN (?)",
+      [classroomIds]
+    );
+    return rows;
+  }
   static async create(
     college_id,
     code,

@@ -1,4 +1,6 @@
 const Schedule = require("../models/scheduleModel");
+const Classroom = require("../models/classroomModel"); // 新增教室模型
+const Teacher = require("../models/teacherModel"); // 新增教师模型
 const { ClassDivided } = require("../constants/reservations");
 
 exports.getAllSchedules = async (req, res, next) => {
@@ -43,7 +45,25 @@ exports.getAllSchedules = async (req, res, next) => {
       formatDate(endDate)
     );
 
-    // 按天分组课程（保持不变）
+    // 获取所有相关的教室和教师信息
+    const classroomIds = [...new Set(schedules.map(s => s.classroom_id))];
+    const teacherIds = [...new Set(schedules.map(s => s.teacher_id))];
+
+    // 获取教室信息
+    const classrooms = await Classroom.getByIds(classroomIds);
+    const classroomMap = classrooms.reduce((map, classroom) => {
+      map[classroom.classroom_id] = classroom;
+      return map;
+    }, {});
+
+    // 获取教师信息
+    const teachers = await Teacher.getByIds(teacherIds);
+    const teacherMap = teachers.reduce((map, teacher) => {
+      map[teacher.teacher_id] = teacher;
+      return map;
+    }, {});
+
+    // 按天分组课程并添加教室和教师信息
     const weeklySchedule = {
       Monday: [],
       Tuesday: [],
@@ -56,14 +76,25 @@ exports.getAllSchedules = async (req, res, next) => {
 
     schedules.forEach(schedule => {
       const dayOfWeek = new Date(schedule.start_time).getDay();
+      
+      // 获取教室和教师信息
+      const classroom = classroomMap[schedule.classroom_id];
+      const teacher = teacherMap[schedule.teacher_id];
+      
+      const enrichedSchedule = {
+        ...schedule,
+        classroom_code: classroom ? classroom.code : null,
+        teacher_name: teacher ? teacher.name : null
+      };
+
       switch (dayOfWeek) {
-        case 0: weeklySchedule.Sunday.push(schedule); break;
-        case 1: weeklySchedule.Monday.push(schedule); break;
-        case 2: weeklySchedule.Tuesday.push(schedule); break;
-        case 3: weeklySchedule.Wednesday.push(schedule); break;
-        case 4: weeklySchedule.Thursday.push(schedule); break;
-        case 5: weeklySchedule.Friday.push(schedule); break;
-        case 6: weeklySchedule.Saturday.push(schedule); break;
+        case 0: weeklySchedule.Sunday.push(enrichedSchedule); break;
+        case 1: weeklySchedule.Monday.push(enrichedSchedule); break;
+        case 2: weeklySchedule.Tuesday.push(enrichedSchedule); break;
+        case 3: weeklySchedule.Wednesday.push(enrichedSchedule); break;
+        case 4: weeklySchedule.Thursday.push(enrichedSchedule); break;
+        case 5: weeklySchedule.Friday.push(enrichedSchedule); break;
+        case 6: weeklySchedule.Saturday.push(enrichedSchedule); break;
       }
     });
 
@@ -97,7 +128,6 @@ exports.getAllSchedules = async (req, res, next) => {
     });
   }
 };
-
 exports.getScheduleById = async (req, res, next) => {
   try {
     const schedule = await Schedule.getByIdWithDetails(req.params.id);
