@@ -19,22 +19,27 @@ exports.getAllReservations = async (req, res, next) => {
     const parsedLimit = parseInt(limit, 10);
     const parsedSkip = parseInt(skip, 10);
     if (isNaN(parsedLimit) || isNaN(parsedSkip)) {
-      return res.status(400).json({ message: 'Invalid limit or skip value' });
+      return res.status(400).json({
+        code: 400,
+        message: 'Invalid limit or skip value',
+        data: null
+      });
     }
 
-    // 构建基础查询
+    // 构建基础查询（移除了不存在的avatar字段）
     let baseQuery = `
     SELECT 
       r.*,
       s.name AS student_name,
       c.code AS classroom_code,
       c.location AS classroom_location,
+      c.photo_url AS classroom_photo,
       t.name AS teacher_name
     FROM reservation r
     LEFT JOIN student s ON r.student_id = s.student_id
     LEFT JOIN classroom c ON r.classroom_id = c.classroom_id
     LEFT JOIN teachers t ON r.teacher_id = t.teacher_id
-  `;
+    `;
 
     // 构建筛选条件
     const whereClauses = [];
@@ -101,12 +106,13 @@ exports.getAllReservations = async (req, res, next) => {
     const totalPages = Math.ceil(total / parsedLimit);
     const currentPage = Math.floor(parsedSkip / parsedLimit) + 1;
 
+    // 成功响应
     res.status(200).json({
-      totalPages,
-      currentPage,
+      code: 200,
+      message: 'Success',
       data: {
-        reservations,
         total,
+        reservations,
         filters: {
           student_id,
           classroom_id,
@@ -119,9 +125,16 @@ exports.getAllReservations = async (req, res, next) => {
         }
       }
     });
+
   } catch (err) {
     console.error('Error fetching reservations:', err);
-    next(err);
+    // 错误响应
+    res.status(500).json({
+      code: 500,
+      message: 'Internal server error',
+      data: null,
+      error: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
   }
 };
 

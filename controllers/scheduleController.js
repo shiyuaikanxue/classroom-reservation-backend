@@ -17,7 +17,7 @@ exports.getAllSchedules = async (req, res, next) => {
     }
 
     // 配置学期开始日期（应放在模块顶部常量区）
-    const SEMESTER_START_DATE = new Date('2024-09-02');
+    const SEMESTER_START_DATE = new Date('2025-02-24');
 
     // 基于学期开始日期的周数计算
     const getWeekDateRange = (week) => {
