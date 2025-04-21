@@ -1,44 +1,77 @@
 const Classroom = require("../models/classroomModel");
 const db = require('../config/db');
+const decodeQueryParam = (param) => {
+  if (typeof param === 'string') {
+    try {
+      return decodeURIComponent(param)
+    } catch (e) {
+      return param
+    }
+  }
+  return param
+}
+
 exports.getAllClassrooms = async (req, res, next) => {
   try {
     const {
-      limit = 10,
+      limit = 20,
       skip = 0,
       code,
       capacity,
+      min_capacity,
+      max_capacity,
       air_conditioner_count,
+      min_air_conditioner,
       status,
       multimedia_equipment,
-      equipment  // 新增：设备数组 ["黑板","白板"]
+      equipment,
+      date,
+      timeSlot,
+      college_id
     } = req.query;
 
     // 参数验证
     const parsedLimit = parseInt(limit, 10);
     const parsedSkip = parseInt(skip, 10);
     if (isNaN(parsedLimit) || isNaN(parsedSkip)) {
-      return res.status(400).json({ message: 'Invalid limit or skip value' });
+      return res.status(400).json({
+        code: 400,
+        message: 'Invalid limit or skip value'
+      });
     }
 
-    // 处理设备数组参数
+    // 解码timeSlot参数
+    const decodedTimeSlot = timeSlot ? decodeQueryParam(timeSlot) : null;
+
+    // 处理设备参数
     let equipmentArray = [];
     if (equipment) {
       try {
-        equipmentArray = JSON.parse(equipment);
-        if (!Array.isArray(equipmentArray)) {
-          return res.status(400).json({ message: 'Equipment should be an array' });
+        let decodedEquipment = decodeQueryParam(equipment);
+
+        if (typeof decodedEquipment === 'string' && decodedEquipment.startsWith('[') && decodedEquipment.endsWith(']')) {
+          equipmentArray = JSON.parse(decodedEquipment);
+        } else if (typeof decodedEquipment === 'string' && decodedEquipment.includes(',')) {
+          equipmentArray = decodedEquipment.split(',').map(item => item.trim());
+        } else {
+          equipmentArray = [decodedEquipment];
         }
       } catch (e) {
-        return res.status(400).json({ message: 'Invalid equipment format' });
+        console.error('Error processing equipment parameter:', e);
+        return res.status(400).json({
+          code: 400,
+          message: 'Invalid equipment format'
+        });
       }
     }
 
     // 构建基础查询
     let baseQuery = `
-      SELECT c.*, 
+      SELECT 
+        c.*, 
         cl.name AS college_name,
-        (SELECT COUNT(*) FROM reservation 
-         WHERE classroom_id = c.classroom_id) AS reservation_count
+        (SELECT COUNT(*) FROM favorite 
+         WHERE classroom_id = c.classroom_id) AS favorite_count
       FROM classroom c
       JOIN college cl ON c.college_id = cl.college_id
     `;
@@ -47,10 +80,48 @@ exports.getAllClassrooms = async (req, res, next) => {
     const whereClauses = [];
     const params = [];
 
+    // 空闲教室判断（关键修复：增加schedule表检查）
+    if (date && decodedTimeSlot) {
+      whereClauses.push(`
+        NOT EXISTS (
+          SELECT 1 FROM reservation 
+          WHERE classroom_id = c.classroom_id
+          AND date = ? 
+          AND time_slot = ? 
+          AND status != 'cancelled'
+        )
+        AND NOT EXISTS (
+          SELECT 1 FROM usage_record 
+          WHERE classroom_id = c.classroom_id
+          AND date = ? 
+          AND time_slot = ? 
+          AND status != 'cancelled'
+        )
+        AND NOT EXISTS (
+          SELECT 1 FROM schedule 
+          WHERE classroom_id = c.classroom_id
+          AND DATE(start_time) = ?
+          AND time_slot = ?
+          AND status = 'active'
+        )
+      `);
+      params.push(
+        date, decodedTimeSlot,  // reservation
+        date, decodedTimeSlot,  // usage_record
+        date, decodedTimeSlot   // schedule
+      );
+    }
+
     // 教室号筛选
     if (code) {
-      whereClauses.push('c.code = ?');
-      params.push(code);
+      whereClauses.push('c.code LIKE ?');
+      params.push(`%${code}%`);
+    }
+
+    // 学院ID筛选
+    if (college_id) {
+      whereClauses.push('c.college_id = ?');
+      params.push(college_id);
     }
 
     // 教室容量筛选
@@ -58,11 +129,23 @@ exports.getAllClassrooms = async (req, res, next) => {
       whereClauses.push('c.capacity = ?');
       params.push(capacity);
     }
+    if (min_capacity) {
+      whereClauses.push('c.capacity >= ?');
+      params.push(min_capacity);
+    }
+    if (max_capacity) {
+      whereClauses.push('c.capacity <= ?');
+      params.push(max_capacity);
+    }
 
     // 空调数量筛选
     if (air_conditioner_count) {
       whereClauses.push('c.air_conditioner_count = ?');
       params.push(air_conditioner_count);
+    }
+    if (min_air_conditioner) {
+      whereClauses.push('c.air_conditioner_count >= ?');
+      params.push(min_air_conditioner);
     }
 
     // 状态筛选
@@ -74,14 +157,15 @@ exports.getAllClassrooms = async (req, res, next) => {
     // 多媒体设备筛选
     if (multimedia_equipment !== undefined) {
       whereClauses.push('c.multimedia_equipment = ?');
-      params.push(multimedia_equipment);
+      params.push(String(multimedia_equipment));
     }
 
-    // 设备筛选（新增）
+    // 设备精确筛选（必须包含所有指定设备）
     if (equipmentArray.length > 0) {
-      const equipmentConditions = equipmentArray.map(() => 'c.equipment LIKE ?');
-      whereClauses.push(`(${equipmentConditions.join(' OR ')})`);
-      equipmentArray.forEach(equip => params.push(`%${equip}%`));
+      equipmentArray.forEach(equip => {
+        whereClauses.push(`FIND_IN_SET(?, c.equipment)`);
+        params.push(equip);
+      });
     }
 
     // 组合WHERE条件
@@ -93,9 +177,9 @@ exports.getAllClassrooms = async (req, res, next) => {
     baseQuery += ' ORDER BY c.code ASC';
 
     // 获取总数
-    const totalQuery = `SELECT COUNT(*) AS total FROM (${baseQuery}) AS count_query`;
-    const [totalResult] = await db.query(totalQuery, params);
-    const total = totalResult[0].total;
+    const countQuery = `SELECT COUNT(*) AS total FROM (${baseQuery}) AS count_query`;
+    const [totalResult] = await db.query(countQuery, params);
+    const total = totalResult[0]?.total || 0;
 
     // 获取分页数据
     const paginatedQuery = `${baseQuery} LIMIT ? OFFSET ?`;
@@ -105,73 +189,115 @@ exports.getAllClassrooms = async (req, res, next) => {
     const totalPages = Math.ceil(total / parsedLimit);
     const currentPage = Math.floor(parsedSkip / parsedLimit) + 1;
 
+    // 返回结果
     res.status(200).json({
-      totalPages,
-      currentPage,
+      code: 200,
+      message: 'Success',
       data: {
-        classrooms,
+        totalPages,
+        currentPage,
         total,
+        classrooms: classrooms.map(room => ({
+          ...room,
+          equipment: room.equipment
+        })),
         filters: {
           code,
           capacity,
+          min_capacity,
+          max_capacity,
           air_conditioner_count,
+          min_air_conditioner,
           status,
           multimedia_equipment,
-          equipment: equipmentArray
+          equipment: equipmentArray,
+          date,
+          time_slot: decodedTimeSlot,
+          college_id
         }
       }
     });
+
   } catch (err) {
     console.error('Error fetching classrooms:', err);
-    next(err);
+    res.status(500).json({
+      code: 500,
+      message: 'Internal server error',
+      error: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
   }
 };
 exports.getClassroomById = async (req, res, next) => {
   try {
     const classroomId = req.params.id;
     if (!classroomId) {
-      return res.status(400).json({ message: 'Classroom ID is required' });
+      return res.status(400).json({
+        code: 400,
+        message: '教室ID不能为空'
+      });
     }
 
-    // 获取教室基础信息
+    // 1. 获取教室基础信息
     const [classroom] = await db.query(`
-      SELECT c.*, cl.name AS college_name
+      SELECT 
+        c.*, 
+        cl.name AS college_name
       FROM classroom c
       JOIN college cl ON c.college_id = cl.college_id
       WHERE c.classroom_id = ?
     `, [classroomId]);
 
     if (!classroom.length) {
-      return res.status(404).json({ message: 'Classroom not found' });
+      return res.status(404).json({
+        code: 404,
+        message: '教室不存在'
+      });
     }
 
-    // 获取关联统计信息
+    // 2. 获取预约统计
     const [reservationCount] = await db.query(
       'SELECT COUNT(*) AS count FROM reservation WHERE classroom_id = ?',
       [classroomId]
     );
 
-    // 获取最近预约
+    // 3. 获取最近预约（移除所有注释）
     const [upcomingReservations] = await db.query(
-      `SELECT r.*, u.name AS user_name 
-       FROM reservation r
-       JOIN user u ON r.user_id = u.user_id
-       WHERE r.classroom_id = ? AND r.end_time > NOW()
-       ORDER BY r.start_time ASC
+      `SELECT 
+         reservation_id,
+         date,
+         time_slot,
+         activity_name
+       FROM reservation 
+       WHERE classroom_id = ? 
+         AND date >= CURDATE()
+       ORDER BY date ASC
        LIMIT 5`,
       [classroomId]
     );
 
     res.status(200).json({
+      code: 200,
       data: {
         ...classroom[0],
         reservation_count: reservationCount[0].count,
-        upcoming_reservations: upcomingReservations
+        upcoming_reservations: upcomingReservations.map(r => ({
+          id: r.reservation_id,
+          date: r.date,
+          time_slot: r.time_slot,
+          activity: r.activity_name
+        }))
       }
     });
   } catch (err) {
-    console.error(`Error fetching classroom ${req.params.id}:`, err);
-    next(err);
+    console.error(`获取教室[${req.params.id}]信息失败:`, err);
+    res.status(500).json({
+      code: 500,
+      message: '服务器内部错误',
+      error: process.env.NODE_ENV === 'development' ? {
+        message: err.message,
+        sql: err.sql
+      } : undefined
+    });
   }
 };
 exports.createClassroom = async (req, res, next) => {

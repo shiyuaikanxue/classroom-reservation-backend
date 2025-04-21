@@ -145,7 +145,6 @@ exports.getReservationById = async (req, res, next) => {
       SELECT 
         r.*,
         s.name AS student_name,
-        s.student_number,
         s.email AS student_email,
         s.phone AS student_phone,
         c.code AS classroom_code,
@@ -157,20 +156,33 @@ exports.getReservationById = async (req, res, next) => {
       FROM reservation r
       LEFT JOIN student s ON r.student_id = s.student_id
       LEFT JOIN classroom c ON r.classroom_id = c.classroom_id
-      LEFT JOIN teachers t ON r.teacher_id = t.teacher_id
+      LEFT JOIN teachers t ON r.teacher_id = t.teacher_id  /* 这里改为teachers */
       WHERE r.reservation_id = ?
     `;
 
     const [reservation] = await db.query(query, [reservationId]);
 
     if (!reservation || reservation.length === 0) {
-      return res.status(404).json({ message: 'Reservation not found' });
+      return res.status(404).json({
+        code: 404,
+        message: '预约记录不存在'
+      });
     }
 
-    res.status(200).json(reservation[0]);
+    res.status(200).json({
+      code: 200,
+      data: reservation[0]
+    });
   } catch (err) {
-    console.error('Error fetching reservation by ID:', err);
-    next(err);
+    console.error('获取预约记录失败:', err);
+    res.status(500).json({
+      code: 500,
+      message: '服务器内部错误',
+      error: process.env.NODE_ENV === 'development' ? {
+        message: err.message,
+        sql: err.sql
+      } : undefined
+    });
   }
 };
 
@@ -190,7 +202,7 @@ exports.createReservation = async (req, res, next) => {
       teacher_id,
       participants = 1
     } = req.body;
-
+    console.log(req.body)
     // 参数验证
     if (!student_id || !classroom_id || !activity_name || !date || !time_slot) {
       await connection.rollback();
@@ -250,7 +262,8 @@ exports.createReservation = async (req, res, next) => {
 
     await connection.commit();
 
-    res.status(201).json({
+    res.status(200).json({
+      code: 200,
       reservation_id: result.insertId,
       message: 'Reservation created successfully'
     });
@@ -269,17 +282,22 @@ exports.updateReservation = async (req, res, next) => {
     await connection.beginTransaction();
 
     const reservationId = req.params.id;
-    const {
+    let {
       student_id,
       classroom_id,
       activity_name,
       description,
-      date,
+      date, // 可能是 ISO 格式的日期字符串
       time_slot,
       status,
       teacher_id,
       participants
     } = req.body;
+
+    // 转换日期格式（如果提供了date）
+    const processedDate = date ?
+      new Date(date).toISOString().split('T')[0] :
+      undefined;
 
     // 检查预约是否存在
     const [existingReservation] = await connection.query(
@@ -287,41 +305,62 @@ exports.updateReservation = async (req, res, next) => {
       [reservationId]
     );
 
-    if (!existingReservation || existingReservation.length === 0) {
+    if (!existingReservation?.length) {
       await connection.rollback();
-      return res.status(404).json({ message: 'Reservation not found' });
+      return res.status(404).json({
+        code: 404,
+        message: '预约记录不存在'
+      });
     }
 
     // 检查学生是否存在（如果提供了student_id）
     if (student_id) {
-      const [student] = await connection.query('SELECT 1 FROM student WHERE student_id = ?', [student_id]);
-      if (!student || student.length === 0) {
+      const [student] = await connection.query(
+        'SELECT 1 FROM student WHERE student_id = ?',
+        [student_id]
+      );
+      if (!student?.length) {
         await connection.rollback();
-        return res.status(400).json({ message: 'Student not found' });
+        return res.status(400).json({
+          code: 400,
+          message: '学生不存在'
+        });
       }
     }
 
     // 检查教室是否存在（如果提供了classroom_id）
     if (classroom_id) {
-      const [classroom] = await connection.query('SELECT 1 FROM classroom WHERE classroom_id = ?', [classroom_id]);
-      if (!classroom || classroom.length === 0) {
+      const [classroom] = await connection.query(
+        'SELECT 1 FROM classroom WHERE classroom_id = ?',
+        [classroom_id]
+      );
+      if (!classroom?.length) {
         await connection.rollback();
-        return res.status(400).json({ message: 'Classroom not found' });
+        return res.status(400).json({
+          code: 400,
+          message: '教室不存在'
+        });
       }
     }
 
     // 检查教师是否存在（如果提供了teacher_id）
     if (teacher_id) {
-      const [teacher] = await connection.query('SELECT 1 FROM teachers WHERE teacher_id = ?', [teacher_id]);
-      if (!teacher || teacher.length === 0) {
+      const [teacher] = await connection.query(
+        'SELECT 1 FROM teachers WHERE teacher_id = ?',
+        [teacher_id]
+      );
+      if (!teacher?.length) {
         await connection.rollback();
-        return res.status(400).json({ message: 'Teacher not found' });
+        return res.status(400).json({
+          code: 400,
+          message: '教师不存在'
+        });
       }
     }
 
     // 检查时间冲突（排除当前预约）
     if (date || time_slot || classroom_id) {
-      const checkDate = date || existingReservation[0].date;
+      const checkDate = processedDate || existingReservation[0].date;
       const checkTimeSlot = time_slot || existingReservation[0].time_slot;
       const checkClassroomId = classroom_id || existingReservation[0].classroom_id;
 
@@ -335,13 +374,16 @@ exports.updateReservation = async (req, res, next) => {
         LIMIT 1
       `, [checkClassroomId, checkDate, checkTimeSlot, reservationId]);
 
-      if (conflict && conflict.length > 0) {
+      if (conflict?.length > 0) {
         await connection.rollback();
-        return res.status(400).json({ message: 'Time slot already reserved for this classroom' });
+        return res.status(400).json({
+          code: 400,
+          message: '该教室在指定时间段已被预约'
+        });
       }
     }
 
-    // 更新预约
+    // 更新预约（使用处理后的日期）
     await connection.query(`
       UPDATE reservation SET
         student_id = COALESCE(?, student_id),
@@ -359,7 +401,7 @@ exports.updateReservation = async (req, res, next) => {
       classroom_id,
       activity_name,
       description,
-      date,
+      processedDate, // 使用处理后的日期
       time_slot,
       status,
       teacher_id,
@@ -370,13 +412,23 @@ exports.updateReservation = async (req, res, next) => {
     await connection.commit();
 
     res.status(200).json({
-      message: 'Reservation updated successfully',
-      reservation_id: reservationId
+      code: 200,
+      message: '预约更新成功',
+      data: {
+        reservation_id: reservationId
+      }
     });
   } catch (err) {
     await connection.rollback();
-    console.error('Error updating reservation:', err);
-    next(err);
+    console.error('更新预约失败:', err);
+    res.status(500).json({
+      code: 500,
+      message: '服务器内部错误',
+      error: process.env.NODE_ENV === 'development' ? {
+        message: err.message,
+        sql: err.sql
+      } : undefined
+    });
   } finally {
     connection.release();
   }
@@ -409,6 +461,7 @@ exports.deleteReservation = async (req, res, next) => {
     await connection.commit();
 
     res.status(200).json({
+      code: 200,
       message: 'Reservation deleted successfully',
       reservation_id: reservationId
     });

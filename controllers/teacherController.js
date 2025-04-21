@@ -3,8 +3,8 @@ const Teacher = require("../models/teacherModel");
 exports.getAllTeachers = async (req, res, next) => {
   try {
     const {
-      page = 1,
-      limit = 10,
+      page,
+      limit,
       name,
       gender,
       email,
@@ -23,22 +23,42 @@ exports.getAllTeachers = async (req, res, next) => {
       search
     };
 
-    // 获取教师数据（带分页和筛选）
-    const { teachers, total } = await Teacher.getAllWithPagination(
-      Number(page),
-      Number(limit),
-      filter
-    );
+    // 判断是否需要进行分页
+    const shouldPaginate = page !== undefined && limit !== undefined;
+
+    let result;
+    if (shouldPaginate) {
+      // 获取分页数据
+      const { teachers, total } = await Teacher.getAllWithPagination(
+        Number(page),
+        Number(limit),
+        filter
+      );
+
+      result = {
+        teachers,
+        pagination: {
+          total,
+          page: Number(page),
+          limit: Number(limit),
+          totalPages: Math.ceil(total / Number(limit))
+        }
+      };
+    } else {
+      // 获取全部数据
+      const teachers = await Teacher.getAll(filter);
+      result = {
+        teachers,
+        pagination: null // 表示未分页
+      };
+    }
 
     res.status(200).json({
-      teachers,
-      pagination: {
-        total,
-        page: Number(page),
-        limit: Number(limit),
-        totalPages: Math.ceil(total / Number(limit))
-      },
-      filter
+      code: 200,
+      data: {
+        ...result,
+        filter
+      }
     });
   } catch (err) {
     next(err);
@@ -49,8 +69,8 @@ exports.getTeacherById = async (req, res, next) => {
   try {
     const teacher = await Teacher.getByIdWithDetails(req.params.id);
     if (!teacher) {
-      return res.status(404).json({ 
-        message: "Teacher not found" 
+      return res.status(404).json({
+        message: "Teacher not found"
       });
     }
     res.status(200).json(teacher);
@@ -65,16 +85,16 @@ exports.createTeacher = async (req, res, next) => {
 
     // 验证必需字段
     if (!name || !email || !college_id) {
-      return res.status(400).json({ 
-        message: "name, email and college_id are required" 
+      return res.status(400).json({
+        message: "name, email and college_id are required"
       });
     }
 
     // 检查邮箱是否已存在
     const emailExists = await Teacher.checkEmailExists(email);
     if (emailExists) {
-      return res.status(409).json({ 
-        message: "Email already in use" 
+      return res.status(409).json({
+        message: "Email already in use"
       });
     }
 
@@ -87,9 +107,9 @@ exports.createTeacher = async (req, res, next) => {
       college_id
     });
 
-    res.status(201).json({ 
+    res.status(201).json({
       teacher_id: teacherId,
-      message: "Teacher created successfully" 
+      message: "Teacher created successfully"
     });
   } catch (err) {
     next(err);
@@ -104,8 +124,8 @@ exports.updateTeacher = async (req, res, next) => {
     // 检查教师是否存在
     const teacher = await Teacher.getById(id);
     if (!teacher) {
-      return res.status(404).json({ 
-        message: "Teacher not found" 
+      return res.status(404).json({
+        message: "Teacher not found"
       });
     }
 
@@ -113,8 +133,8 @@ exports.updateTeacher = async (req, res, next) => {
     if (email && email !== teacher.email) {
       const emailExists = await Teacher.checkEmailExists(email);
       if (emailExists) {
-        return res.status(409).json({ 
-          message: "Email already in use by another teacher" 
+        return res.status(409).json({
+          message: "Email already in use by another teacher"
         });
       }
     }
@@ -128,8 +148,8 @@ exports.updateTeacher = async (req, res, next) => {
       college_id
     });
 
-    res.status(200).json({ 
-      message: "Teacher updated successfully" 
+    res.status(200).json({
+      message: "Teacher updated successfully"
     });
   } catch (err) {
     next(err);
@@ -143,24 +163,24 @@ exports.deleteTeacher = async (req, res, next) => {
     // 检查教师是否存在
     const teacher = await Teacher.getById(id);
     if (!teacher) {
-      return res.status(404).json({ 
-        message: "Teacher not found" 
+      return res.status(404).json({
+        message: "Teacher not found"
       });
     }
 
     // 检查是否有关联课程
     const hasCourses = await Teacher.checkHasCourses(id);
     if (hasCourses) {
-      return res.status(400).json({ 
-        message: "Cannot delete teacher with assigned courses" 
+      return res.status(400).json({
+        message: "Cannot delete teacher with assigned courses"
       });
     }
 
     // 删除教师
     await Teacher.delete(id);
 
-    res.status(200).json({ 
-      message: "Teacher deleted successfully" 
+    res.status(200).json({
+      message: "Teacher deleted successfully"
     });
   } catch (err) {
     next(err);

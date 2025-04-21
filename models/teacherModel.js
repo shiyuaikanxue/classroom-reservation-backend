@@ -53,7 +53,7 @@ module.exports = {
         c.name as college_name,
         COUNT(co.course_id) as course_count
       FROM teachers t
-      LEFT JOIN colleges c ON t.college_id = c.college_id
+      LEFT JOIN college c ON t.college_id = c.college_id
       LEFT JOIN courses co ON t.teacher_id = co.teacher_id
       ${whereClause}
       GROUP BY t.teacher_id
@@ -74,7 +74,72 @@ module.exports = {
 
     return { teachers, total };
   },
-  // 在 module.exports 中添加
+
+  // 获取所有教师（不带分页，带筛选）
+  async getAll(filter = {}) {
+    // 构建WHERE条件
+    const whereConditions = [];
+    const params = [];
+
+    if (filter.name) {
+      whereConditions.push('t.name LIKE ?');
+      params.push(`%${filter.name}%`);
+    }
+
+    if (filter.gender) {
+      whereConditions.push('t.gender = ?');
+      params.push(filter.gender);
+    }
+
+    if (filter.email) {
+      whereConditions.push('t.email LIKE ?');
+      params.push(`%${filter.email}%`);
+    }
+
+    if (filter.college_id) {
+      whereConditions.push('t.college_id = ?');
+      params.push(filter.college_id);
+    }
+
+    if (filter.search) {
+      whereConditions.push('(t.name LIKE ? OR t.email LIKE ?)');
+      params.push(`%${filter.search}%`);
+      params.push(`%${filter.search}%`);
+    }
+
+    const whereClause = whereConditions.length > 0
+      ? `WHERE ${whereConditions.join(' AND ')}`
+      : '';
+
+    // 基础查询
+    let query = `
+      SELECT 
+        t.*,
+        c.name as college_name,
+        COUNT(co.course_id) as course_count
+      FROM teachers t
+      LEFT JOIN college c ON t.college_id = c.college_id
+      LEFT JOIN courses co ON t.teacher_id = co.teacher_id
+      ${whereClause}
+      GROUP BY t.teacher_id
+    `;
+
+    // 添加课程数量筛选
+    if (filter.min_courses) {
+      query += ' HAVING course_count >= ?';
+      params.push(filter.min_courses);
+    }
+
+    // 添加排序
+    query += ' ORDER BY t.name ASC';
+
+    // 执行查询
+    const [teachers] = await db.query(query, params);
+
+    return teachers;
+  },
+
+  // 其他现有方法保持不变...
   async getByIds(teacherIds) {
     if (!teacherIds || teacherIds.length === 0) return [];
 
@@ -84,21 +149,20 @@ module.exports = {
     );
     return teachers;
   },
-  // 根据ID获取教师详情（带关联信息）
+
   async getByIdWithDetails(id) {
     const [teachers] = await db.query(
       `SELECT 
         t.*,
         c.name as college_name
        FROM teachers t
-       LEFT JOIN colleges c ON t.college_id = c.college_id
+       LEFT JOIN college c ON t.college_id = c.college_id
        WHERE t.teacher_id = ?`,
       [id]
     );
 
     if (teachers.length === 0) return null;
 
-    // 获取教师教授的课程
     const [courses] = await db.query(
       `SELECT 
         course_id, 
@@ -115,7 +179,6 @@ module.exports = {
     };
   },
 
-  // 检查邮箱是否已存在
   async checkEmailExists(email) {
     const [results] = await db.query(
       'SELECT 1 FROM teachers WHERE email = ?',
@@ -124,7 +187,6 @@ module.exports = {
     return results.length > 0;
   },
 
-  // 检查教师是否有课程
   async checkHasCourses(teacherId) {
     const [results] = await db.query(
       'SELECT 1 FROM courses WHERE teacher_id = ? LIMIT 1',
@@ -133,7 +195,6 @@ module.exports = {
     return results.length > 0;
   },
 
-  // 基础CRUD方法
   async getById(id) {
     const [teachers] = await db.query(
       'SELECT * FROM teachers WHERE teacher_id = ?',
