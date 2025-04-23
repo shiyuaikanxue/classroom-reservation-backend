@@ -121,7 +121,8 @@ exports.getAllStudents = async (req, res, next) => {
   }
 };
 
-// 获取学生详情
+
+// 获取学生详情（包含学院、专业、班级等完整信息）
 exports.getStudentById = async (req, res, next) => {
   try {
     const studentId = req.params.id;
@@ -129,31 +130,64 @@ exports.getStudentById = async (req, res, next) => {
       return res.status(400).json({ message: 'Student ID is required' });
     }
 
+    // 主查询：学生基本信息 + 学校 + 班级 + 专业 + 学院
     const [student] = await db.query(`
-      SELECT s.*, 
+      SELECT 
+        s.*,
         sc.name AS school_name,
-        cl.name AS class_name
+        sc.address AS school_address,
+        sc.phone AS school_phone,
+        cl.name AS class_name,
+        m.name AS major_name,
+        co.name AS college_name
       FROM student s
       LEFT JOIN school sc ON s.school_id = sc.school_id
       LEFT JOIN class cl ON s.class_id = cl.class_id
+      LEFT JOIN major m ON cl.major_id = m.major_id
+      LEFT JOIN college co ON m.college_id = co.college_id
       WHERE s.student_id = ?
+      LIMIT 1
     `, [studentId]);
 
     if (!student.length) {
       return res.status(404).json({ message: 'Student not found' });
     }
 
-    // 获取学生的额外信息（如成绩、考勤等）
-    const [records] = await db.query(
-      'SELECT * FROM student_record WHERE student_id = ? LIMIT 10',
-      [studentId]
-    );
+    // 获取学生课程信息（通过teachers表关联）
+    let courses = [];
+    try {
+      const [courseResults] = await db.query(`
+        SELECT 
+          c.course_id,
+          c.name AS course_name,
+          t.name AS teacher_name
+        FROM courses c
+        JOIN teachers t ON c.teacher_id = t.teacher_id
+        WHERE c.teacher_id IN (
+          SELECT teacher_id FROM teachers 
+          WHERE college_id = (
+            SELECT college_id FROM major 
+            WHERE major_id = (
+              SELECT major_id FROM class 
+              WHERE class_id = ?
+            )
+          )
+        )
+      `, [student[0].class_id]);
+      courses = courseResults;
+    } catch (err) {
+      console.error('Error fetching courses:', err);
+    }
+
+    // 构造返回数据
+    const result = {
+      ...student[0],
+      courses: courses
+    };
 
     res.status(200).json({
-      data: {
-        ...student[0],
-        records
-      }
+      code: 200,
+      data: result
     });
   } catch (err) {
     console.error(`Error fetching student ${req.params.id}:`, err);
