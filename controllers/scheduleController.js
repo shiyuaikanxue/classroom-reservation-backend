@@ -2,7 +2,7 @@ const Schedule = require("../models/scheduleModel");
 const Classroom = require("../models/classroomModel"); // 新增教室模型
 const Teacher = require("../models/teacherModel"); // 新增教师模型
 const { ClassDivided } = require("../constants/reservations");
-
+const Reservation = require("../models/reservationModel"); // 新增预约模型
 exports.getAllSchedules = async (req, res, next) => {
   try {
     const { student_id, week } = req.query;
@@ -16,55 +16,70 @@ exports.getAllSchedules = async (req, res, next) => {
       });
     }
 
-    // 配置学期开始日期（应放在模块顶部常量区）
+    // 配置学期开始日期
     const SEMESTER_START_DATE = new Date('2025-02-24');
 
-    // 基于学期开始日期的周数计算
+    // 获取指定周的日期范围
     const getWeekDateRange = (week) => {
       const startDate = new Date(SEMESTER_START_DATE);
       startDate.setDate(startDate.getDate() + (week - 1) * 7);
-      
+
       const endDate = new Date(startDate);
       endDate.setDate(startDate.getDate() + 6);
-      
+
       return { startDate, endDate };
     };
 
     const { startDate, endDate } = getWeekDateRange(parseInt(week));
 
-    // 格式化日期函数保持不变
+    // 格式化日期
     const formatDate = (date) => {
       const pad = num => num.toString().padStart(2, '0');
       return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
     };
 
-    // 获取课程数据（保持不变）
-    const schedules = await Schedule.getByStudentAndDateRange(
+    // 1. 获取课程数据
+    const courses = await Schedule.getByStudentAndDateRange(
+      student_id,
+      formatDate(startDate),
+      formatDate(endDate)
+    );
+
+    // 2. 获取用户已批准的预约活动
+    const activities = await Reservation.getApprovedByStudentAndDateRange(
       student_id,
       formatDate(startDate),
       formatDate(endDate)
     );
 
     // 获取所有相关的教室和教师信息
-    const classroomIds = [...new Set(schedules.map(s => s.classroom_id))];
-    const teacherIds = [...new Set(schedules.map(s => s.teacher_id))];
+    const allClassroomIds = [
+      ...new Set([
+        ...courses.map(s => s.classroom_id),
+        ...activities.map(a => a.location_id)
+      ])
+    ];
+
+    const allTeacherIds = [
+      ...new Set(courses.map(s => s.teacher_id))
+    ];
 
     // 获取教室信息
-    const classrooms = await Classroom.getByIds(classroomIds);
+    const classrooms = await Classroom.getByIds(allClassroomIds);
     const classroomMap = classrooms.reduce((map, classroom) => {
       map[classroom.classroom_id] = classroom;
       return map;
     }, {});
 
     // 获取教师信息
-    const teachers = await Teacher.getByIds(teacherIds);
+    const teachers = await Teacher.getByIds(allTeacherIds);
     const teacherMap = teachers.reduce((map, teacher) => {
       map[teacher.teacher_id] = teacher;
       return map;
     }, {});
 
-    // 按天分组课程并添加教室和教师信息
-    const weeklySchedule = {
+    // 按天分组数据
+    const weeklyData = {
       Monday: [],
       Tuesday: [],
       Wednesday: [],
@@ -74,33 +89,58 @@ exports.getAllSchedules = async (req, res, next) => {
       Sunday: []
     };
 
-    schedules.forEach(schedule => {
-      const dayOfWeek = new Date(schedule.start_time).getDay();
-      
-      // 获取教室和教师信息
-      const classroom = classroomMap[schedule.classroom_id];
-      const teacher = teacherMap[schedule.teacher_id];
-      
-      const enrichedSchedule = {
-        ...schedule,
+    // 处理课程数据
+    courses.forEach(course => {
+      const dayOfWeek = new Date(course.start_time).getDay();
+      const classroom = classroomMap[course.classroom_id];
+      const teacher = teacherMap[course.teacher_id];
+
+      const enrichedCourse = {
+        ...course,
+        item_type: 'course', // 标识为课程
         classroom_code: classroom ? classroom.code : null,
-        teacher_name: teacher ? teacher.name : null
+        teacher_name: teacher ? teacher.name : null,
+        location: classroom ? classroom.code : null // 保持兼容性
       };
 
       switch (dayOfWeek) {
-        case 0: weeklySchedule.Sunday.push(enrichedSchedule); break;
-        case 1: weeklySchedule.Monday.push(enrichedSchedule); break;
-        case 2: weeklySchedule.Tuesday.push(enrichedSchedule); break;
-        case 3: weeklySchedule.Wednesday.push(enrichedSchedule); break;
-        case 4: weeklySchedule.Thursday.push(enrichedSchedule); break;
-        case 5: weeklySchedule.Friday.push(enrichedSchedule); break;
-        case 6: weeklySchedule.Saturday.push(enrichedSchedule); break;
+        case 0: weeklyData.Sunday.push(enrichedCourse); break;
+        case 1: weeklyData.Monday.push(enrichedCourse); break;
+        case 2: weeklyData.Tuesday.push(enrichedCourse); break;
+        case 3: weeklyData.Wednesday.push(enrichedCourse); break;
+        case 4: weeklyData.Thursday.push(enrichedCourse); break;
+        case 5: weeklyData.Friday.push(enrichedCourse); break;
+        case 6: weeklyData.Saturday.push(enrichedCourse); break;
       }
     });
 
-    // 按时间排序（保持不变）
-    Object.keys(weeklySchedule).forEach(day => {
-      weeklySchedule[day].sort((a, b) =>
+    // 处理活动数据
+    activities.forEach(activity => {
+      const dayOfWeek = new Date(activity.start_time).getDay();
+      const location = classroomMap[activity.location_id];
+
+      const enrichedActivity = {
+        ...activity,
+        item_type: 'activity', // 标识为活动
+        title: activity.event_name,
+        location: location ? location.code : activity.location_name,
+        classroom_code: location ? location.code : null // 保持兼容性
+      };
+
+      switch (dayOfWeek) {
+        case 0: weeklyData.Sunday.push(enrichedActivity); break;
+        case 1: weeklyData.Monday.push(enrichedActivity); break;
+        case 2: weeklyData.Tuesday.push(enrichedActivity); break;
+        case 3: weeklyData.Wednesday.push(enrichedActivity); break;
+        case 4: weeklyData.Thursday.push(enrichedActivity); break;
+        case 5: weeklyData.Friday.push(enrichedActivity); break;
+        case 6: weeklyData.Saturday.push(enrichedActivity); break;
+      }
+    });
+
+    // 按开始时间排序每天的数据
+    Object.keys(weeklyData).forEach(day => {
+      weeklyData[day].sort((a, b) =>
         new Date(a.start_time) - new Date(b.start_time)
       );
     });
@@ -113,12 +153,12 @@ exports.getAllSchedules = async (req, res, next) => {
         week: parseInt(week),
         start_date: formatDate(startDate),
         end_date: formatDate(endDate),
-        schedule: weeklySchedule
+        schedule: weeklyData
       }
     });
 
   } catch (err) {
-    console.error('Error in getStudentWeeklySchedule:', err);
+    console.error('Error in getAllSchedules:', err);
     res.status(500).json({
       code: 500,
       success: false,

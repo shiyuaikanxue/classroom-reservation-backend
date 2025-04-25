@@ -65,14 +65,10 @@ exports.getAnnouncementById = async (req, res, next) => {
             });
         }
 
-        // 检查公告是否属于当前用户学校
-        if (announcement.school_id !== req.user.school_id) {
-            return res.status(403).json({
-                message: "No permission to access this announcement"
-            });
-        }
-
-        res.status(200).json(announcement);
+        res.status(200).json({
+            code: 200,
+            data: announcement
+        });
     } catch (err) {
         next(err);
     }

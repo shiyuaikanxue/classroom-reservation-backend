@@ -10,7 +10,15 @@ class Admin {
   // 获取某学校的所有管理员账号
   static async getAdminsBySchool(schoolId, offset, pageSize, name) {
     let query = `
-        SELECT admin_id, username, avatar, phone_number, role, created_at
+        SELECT 
+            admin_id, 
+            username, 
+            avatar, 
+            phone_number, 
+            role, 
+            responsibility,  -- 新增字段
+            office_location,  -- 新增字段
+            created_at
         FROM admin
         WHERE school_id = ?
     `;
@@ -60,14 +68,34 @@ class Admin {
 
   // 更新管理员信息
   static async updateAdmin(adminId, data) {
-    const { username, avatar, phone_number, role } = data;
-    const [result] = await db.query(
-      `UPDATE admin
-         SET username = ?, avatar = ?, phone_number = ?, role = ?
-         WHERE admin_id = ?`,
-      [username, avatar, phone_number, role, adminId]
-    );
-    return result.affectedRows > 0;
+    const query = `
+        UPDATE admin
+        SET 
+            username = ?, 
+            avatar = ?, 
+            phone_number = ?, 
+            role = ?,
+            responsibility = ?,
+            office_location = ?
+        WHERE admin_id = ?`;
+
+    const params = [
+      data.username,
+      data.avatar,
+      data.phone_number,
+      data.role,
+      data.responsibility,
+      data.office_location,
+      adminId
+    ];
+
+    try {
+      const [result] = await db.query(query, params);
+      return result.affectedRows > 0;
+    } catch (error) {
+      console.error('数据库更新错误:', error);
+      throw error;
+    }
   }
 
   // 删除管理员账号

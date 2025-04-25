@@ -1,5 +1,5 @@
 const AdminModel = require('../models/adminModel');
-
+const db = require('../config/db');
 class AdminController {
     // 获取某学校的所有管理员账号
     static async getAdminsBySchool(req, res) {
@@ -16,6 +16,7 @@ class AdminController {
 
             // 规范化返回数据
             res.status(200).json({
+                code: 200,
                 success: true,
                 message: '管理员数据获取成功',
                 data: {
@@ -62,13 +63,33 @@ class AdminController {
     }
 
     // 更新管理员信息
+    // 更新管理员信息
     static async updateAdmin(req, res) {
         try {
             const { adminId } = req.params;
             const data = req.body;
 
+            // 验证必要字段
+            if (!data.username || !data.role) {
+                return res.status(400).json({
+                    success: false,
+                    message: '用户名和角色为必填字段'
+                });
+            }
+
+            // 确保所有参数都是基本类型
+            const params = {
+                username: String(data.username),
+                avatar: data.avatar ? String(data.avatar) : null,
+                phone_number: data.phone_number ? String(data.phone_number) : null,
+                role: String(data.role),
+                responsibility: data.responsibility ? String(data.responsibility) : null,
+                office_location: data.office_location ? String(data.office_location) : null
+            };
+
             // 调用模型方法更新数据
-            const isUpdated = await AdminModel.updateAdmin(adminId, data);
+            const isUpdated = await AdminModel.updateAdmin(adminId, params);
+
             if (isUpdated) {
                 res.status(200).json({
                     success: true,
@@ -84,6 +105,7 @@ class AdminController {
                 });
             }
         } catch (error) {
+            console.error('更新管理员错误:', error);
             res.status(500).json({
                 success: false,
                 message: '服务器错误',
@@ -91,7 +113,6 @@ class AdminController {
             });
         }
     }
-
     // 删除管理员账号
     static async deleteAdmin(req, res) {
         try {

@@ -29,6 +29,28 @@ class Reservation {
   static async delete(reservation_id) {
     await db.query('DELETE FROM reservation WHERE reservation_id = ?', [reservation_id]);
   }
+
+  static async getApprovedByStudentAndDateRange(student_id, startDate, endDate) {
+    const [rows] = await db.query(
+      `SELECT 
+        r.reservation_id,
+        r.student_id,
+        r.classroom_id AS location_id,
+        r.activity_name AS event_name,
+        r.description,
+        CONCAT(r.date, ' ', SUBSTRING_INDEX(r.time_slot, '-', 1), ':00:00') AS start_time,
+        CONCAT(r.date, ' ', SUBSTRING_INDEX(r.time_slot, '-', -1), ':00:00') AS end_time,
+        c.code AS location_name,
+        r.status
+      FROM reservation r
+      LEFT JOIN classroom c ON r.classroom_id = c.classroom_id
+      WHERE r.student_id = ?
+        AND r.date BETWEEN ? AND ?
+        AND r.status = 'approved'`,
+      [student_id, startDate, endDate]
+    );
+    return rows;
+  }
 }
 
 module.exports = Reservation;
